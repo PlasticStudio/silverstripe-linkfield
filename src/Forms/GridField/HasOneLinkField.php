@@ -85,33 +85,45 @@ class HasOneLinkField extends HasOneButtonField
      * {@inheritdoc}
      * @see \SilverStripe\Forms\FormField::validate()
      */
-    public function validate($validator): \SilverStripe\Core\Validation\ValidationResult
+    public function validate(): \SilverStripe\Core\Validation\ValidationResult
     {
         $validationResult = parent::validate();
         $valid = $validationResult->isValid();
+        
         if ($valid) {
             $recordValidationResult = $this->getRecord()->validate();
             $valid = $recordValidationResult->isValid();
+
             foreach ($recordValidationResult->getMessages() as $message) {
-                $messageString = (string) $message['message'] ?? '';
+                $messageString = (string) ($message['message'] ?? '');
                 $validationResult->addFieldError(
                     $this->getName(),
                     $messageString,
                     $message['messageType'] ?? ValidationResult::TYPE_ERROR,
                     '',
-                    $message['messageCast'] ?? ValidationResult::CAST_TEXT,
+                    $message['messageCast'] ?? ValidationResult::CAST_TEXT
                 );
             }
         }
+        
         if ($valid && $this->Required() && !$this->getRecord()->Type) {
             $valid = false;
 
-            $errorMessage = _t('SilverStripe\\Forms\\Form.FIELDISREQUIRED', '{name} is required', [
-                'name' => strip_tags('"' . ($this->Title() ?: $this->getName()) . '"'),
-            ]);
+            $errorMessage = _t(
+                'SilverStripe\\Forms\\Form.FIELDISREQUIRED', 
+                '{name} is required', 
+                [
+                    'name' => strip_tags('"' . ($this->Title() ?: $this->getName()) . '"'),
+                ]
+            );
 
-            $validationResult->addFieldError($this->getName(), $errorMessage, ValidationResult::TYPE_ERROR);
+            $validationResult->addFieldError(
+                $this->getName(), 
+                $errorMessage, 
+                ValidationResult::TYPE_ERROR
+            );
         }
+
         return $validationResult;
     }
 
