@@ -76,7 +76,11 @@ class LinkField extends FormField
         if ($this->isOneOrMany() == 'one') {
             $this->record = $parent->{$name}();
         }
-        $this->setForm($parent->Form);
+        
+        // Only set form if parent has a Form property
+        if ($parent && isset($parent->Form)) {
+            $this->setForm($parent->Form);
+        }
     }
 
     /**
@@ -157,18 +161,24 @@ class LinkField extends FormField
         $parent = $this->parent;
 
         if ($parent instanceof DataObject && !$parent->exists()) {
-            return false;
+            if (!$parent->exists()) {
+                return false;
+            }
+
+            switch ($parent->getRelationType($this->name)) {
+                case 'has_one':
+                case 'belongs_to':
+                    return 'one';
+                case 'has_many':
+                case 'many_many':
+                case 'belongs_many_many':
+                    return 'many';
+            }
         }
 
-        switch ($parent->getRelationType($this->name)) {
-            case 'has_one':
-            case 'belongs_to':
-                return 'one';
-            case 'has_many':
-            case 'many_many':
-            case 'belongs_many_many':
-                return 'many';
-        }
+        // Fallback: if parent is not a DataObject, we can't determine relation
+        // Treat it as 'many' for extension cases, or return null if you prefer
+        return 'many';
     }
 
     public function getRecord()
@@ -214,10 +224,15 @@ class LinkField extends FormField
                 'Layout' => _t(__CLASS__ . '.LINK', 'Link')
             ]);
 
+        $fieldData = null;
+        if ($this->parent instanceof DataObject) {
+            $fieldData = $this->parent->{$this->name}();
+        }
+
         $field = GridField::create(
             $this->name,
             $this->title,
-            $this->parent->{$this->name}(),
+            $fieldData,
             $config
         )->setForm($this->Form);
 
