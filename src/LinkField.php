@@ -219,10 +219,22 @@ class LinkField extends FormField
             ->addComponent(new GridFieldEditButton())
             ->addComponent(new GridFieldDeleteAction(false));
 
-        $config->getComponentByType(GridFieldDataColumns::class)
-            ->setDisplayFields([
-                'Layout' => _t(__CLASS__ . '.LINK', 'Link')
-            ]);
+        $dataColumns = $config->getComponentByType(GridFieldDataColumns::class);
+        
+        $dataColumns->setDisplayFields([
+            'Layout' => _t(__CLASS__ . '.LINK', 'Link')
+        ]);
+
+        // Use a callback to render HTML
+        $dataColumns->setFieldCasting([
+            'Layout' => 'HTMLFragment' // SS6-friendly way to cast HTML
+        ]);
+
+        $dataColumns->setFieldFormatting([
+            'Layout' => function($value, $item) {
+                return $item->forTemplate(); // or $item->getLayout() depending on your code
+            }
+        ]);
 
         $fieldData = null;
         if ($this->parent instanceof DataObject) {
