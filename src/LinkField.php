@@ -19,6 +19,7 @@ use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Control\HTTPRequest;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use SilverShop\HasOneField\HasOneButtonField;
+use SilverStripe\ORM\DataObject;
 
 /**
  * LinkField
@@ -154,9 +155,11 @@ class LinkField extends FormField
     public function isOneOrMany()
     {
         $parent = $this->parent;
-        if (!$parent->exists()) {
+
+        if ($parent instanceof DataObject && !$parent->exists()) {
             return false;
         }
+
         switch ($parent->getRelationType($this->name)) {
             case 'has_one':
             case 'belongs_to':
