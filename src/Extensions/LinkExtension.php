@@ -2,14 +2,14 @@
 
 namespace gorriecoe\LinkField\Extensions;
 
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\HiddenField;
 
 /**
  * Used in conjunction with LinkField, makes the types of Links available configurable.
  */
-class LinkExtension extends DataExtension
+class LinkExtension extends Extension
 {
 
     public function updateCMSFields(FieldList $fields)
@@ -22,17 +22,14 @@ class LinkExtension extends DataExtension
         // Set default Type value.
         $types = array_keys($this->owner->getTypes());
         $typeField = $fields->dataFieldByName('Type');
-        if (!in_array($typeField->Value(), $types)) {
+        if (!in_array($typeField->getValue(), $types)) {
             $typeField->setValue($types[0]);
         }
 
-        parent::updateCMSFields($fields);
     }
 
     public function onBeforeWrite()
     {
-        parent::onBeforeWrite();
-
         // re-set the Title if title fields are not editable.
         if (!$this->shouldDisplayTitleFields()) {
             $this->resetTitle();
