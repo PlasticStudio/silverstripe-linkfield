@@ -20,12 +20,6 @@ use SilverStripe\Control\HTTPRequest;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use SilverShop\HasOneField\HasOneButtonField;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\DataObjectSchema;
-use SilverStripe\ORM\Relation\HasOne;
-use SilverStripe\ORM\Relation\BelongsTo;
-use SilverStripe\ORM\Relation\HasMany;
-use SilverStripe\ORM\Relation\ManyMany;
-use SilverStripe\ORM\Relation\BelongsManyMany;
 
 /**
  * LinkField
@@ -160,36 +154,34 @@ class LinkField extends FormField
     }
 
     /**
+     * Determine if the relationship is a has_one or many_many relation
      * @return string|null
      */
     public function isOneOrMany()
     {
         $parent = $this->parent;
 
-            if (!$parent instanceof DataObject) {
-                return false;
-            }
-
-        $schema = DataObjectSchema::singleton();
-        $parentClass = get_class($parent);
-
-        // Ask the ORM what kind of relationship this is
-        $specs = $schema->fieldSpecs($parentClass);
-        $relation = $specs[$this->name] ?? null;
-        
-        if (!$relation) {
+        if (!$parent instanceof DataObject) {
             return false;
         }
 
-        // Determine relation type by class
-        if ($relation instanceof HasOne ||
-            $relation instanceof BelongsTo) {
+        $schema = DataObject::getSchema();
+        $parentClass = $parent->ClassName;
+
+        // Detect relations the correct way
+        if ($schema->hasOneComponent($parentClass, $this->name)) {
             return 'one';
         }
 
-        if ($relation instanceof HasMany ||
-            $relation instanceof ManyMany ||
-            $relation instanceof BelongsManyMany) {
+        if ($schema->belongsToComponent($parentClass, $this->name)) {
+            return 'one';
+        }
+
+        if ($schema->hasManyComponent($parentClass, $this->name)) {
+            return 'many';
+        }
+
+        if ($schema->manyManyComponent($parentClass, $this->name)) {
             return 'many';
         }
 
