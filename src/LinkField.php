@@ -20,6 +20,7 @@ use SilverStripe\Control\HTTPRequest;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use SilverShop\HasOneField\HasOneButtonField;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DataObjectSchema;
 
 /**
  * LinkField
@@ -160,25 +161,29 @@ class LinkField extends FormField
     {
         $parent = $this->parent;
 
-        if ($parent instanceof DataObject && !$parent->exists()) {
-            if (!$parent->exists()) {
+            if (!$parent instanceof DataObject) {
                 return false;
             }
 
-            switch ($parent->getRelationType($this->name)) {
-                case 'has_one':
-                case 'belongs_to':
-                    return 'one';
-                case 'has_many':
-                case 'many_many':
-                case 'belongs_many_many':
-                    return 'many';
-            }
-        }
+        $schema = DataObjectSchema::singleton();
+        $parentClass = get_class($parent);
 
-        // Fallback: if parent is not a DataObject, we can't determine relation
-        // Treat it as 'many' for extension cases, or return null if you prefer
-        return 'many';
+        // Ask the ORM what kind of relationship this is
+        $relationType = $schema->getRelationType($parentClass, $this->name);
+
+        switch ($relationType) {
+            case DataObjectSchema::HAS_ONE:
+            case DataObjectSchema::BELONGS_TO:
+                return 'one';
+
+            case DataObjectSchema::HAS_MANY:
+            case DataObjectSchema::MANY_MANY:
+            case DataObjectSchema::BELONGS_MANY_MANY:
+                return 'many';
+
+            default:
+                return false;
+        }
     }
 
     public function getRecord()
