@@ -21,6 +21,11 @@ use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use SilverShop\HasOneField\HasOneButtonField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
+use SilverStripe\ORM\Relation\HasOne;
+use SilverStripe\ORM\Relation\BelongsTo;
+use SilverStripe\ORM\Relation\HasMany;
+use SilverStripe\ORM\Relation\ManyMany;
+use SilverStripe\ORM\Relation\BelongsManyMany;
 
 /**
  * LinkField
@@ -169,21 +174,26 @@ class LinkField extends FormField
         $parentClass = get_class($parent);
 
         // Ask the ORM what kind of relationship this is
-        $relationType = $schema->getRelationType($parentClass, $this->name);
-
-        switch ($relationType) {
-            case DataObjectSchema::HAS_ONE:
-            case DataObjectSchema::BELONGS_TO:
-                return 'one';
-
-            case DataObjectSchema::HAS_MANY:
-            case DataObjectSchema::MANY_MANY:
-            case DataObjectSchema::BELONGS_MANY_MANY:
-                return 'many';
-
-            default:
-                return false;
+        $specs = $schema->fieldSpecs($parentClass);
+        $relation = $specs[$this->name] ?? null;
+        
+        if (!$relation) {
+            return false;
         }
+
+        // Determine relation type by class
+        if ($relation instanceof HasOne ||
+            $relation instanceof BelongsTo) {
+            return 'one';
+        }
+
+        if ($relation instanceof HasMany ||
+            $relation instanceof ManyMany ||
+            $relation instanceof BelongsManyMany) {
+            return 'many';
+        }
+
+        return false;
     }
 
     public function getRecord()
