@@ -30,7 +30,7 @@
   "repositories": [
     {
       "type": "vcs",
-      "url": "https://github.com/PlasticStudio/silverstripe-link"
+      "url": "https://github.com/PlasticStudio/silverstripe-link.git"
     }
   ]
 }
