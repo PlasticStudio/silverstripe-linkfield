@@ -161,32 +161,52 @@ class LinkField extends FormField
     {
         $parent = $this->parent;
 
-        if (!$parent instanceof DataObject) {
+        if (!$parent || !$parent->exists()) {
             return false;
         }
 
-        $schema = DataObject::getSchema();
-        $parentClass = $parent->ClassName;
-
-        // Detect relations the correct way
-        if ($schema->hasOneComponent($parentClass, $this->name)) {
-            return 'one';
+        switch ($parent->getRelationType($this->name)) {
+            case 'has_one':
+                return 'one';
+            case 'has_many':
+            case 'many_many':
+            case 'belongs_many_many':
+                return 'many';
+            default:
+                return false; // fallback for unknown relations
         }
-
-        if ($schema->belongsToComponent($parentClass, $this->name)) {
-            return 'one';
-        }
-
-        if ($schema->hasManyComponent($parentClass, $this->name)) {
-            return 'many';
-        }
-
-        if ($schema->manyManyComponent($parentClass, $this->name)) {
-            return 'many';
-        }
-
-        return false;
     }
+
+    // public function isOneOrMany()
+    // {
+    //     $parent = $this->parent;
+
+    //     if (!$parent instanceof DataObject) {
+    //         return false;
+    //     }
+
+    //     $schema = DataObject::getSchema();
+    //     $parentClass = $parent->ClassName;
+
+    //     // Detect relations the correct way
+    //     if ($schema->hasOneComponent($parentClass, $this->name)) {
+    //         return 'one';
+    //     }
+
+    //     if ($schema->belongsToComponent($parentClass, $this->name)) {
+    //         return 'one';
+    //     }
+
+    //     if ($schema->hasManyComponent($parentClass, $this->name)) {
+    //         return 'many';
+    //     }
+
+    //     if ($schema->manyManyComponent($parentClass, $this->name)) {
+    //         return 'many';
+    //     }
+
+    //     return false;
+    // }
 
     public function getRecord()
     {
