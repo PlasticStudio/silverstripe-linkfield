@@ -177,37 +177,6 @@ class LinkField extends FormField
         }
     }
 
-    // public function isOneOrMany()
-    // {
-    //     $parent = $this->parent;
-
-    //     if (!$parent instanceof DataObject) {
-    //         return false;
-    //     }
-
-    //     $schema = DataObject::getSchema();
-    //     $parentClass = $parent->ClassName;
-
-    //     // Detect relations the correct way
-    //     if ($schema->hasOneComponent($parentClass, $this->name)) {
-    //         return 'one';
-    //     }
-
-    //     if ($schema->belongsToComponent($parentClass, $this->name)) {
-    //         return 'one';
-    //     }
-
-    //     if ($schema->hasManyComponent($parentClass, $this->name)) {
-    //         return 'many';
-    //     }
-
-    //     if ($schema->manyManyComponent($parentClass, $this->name)) {
-    //         return 'many';
-    //     }
-
-    //     return false;
-    // }
-
     public function getRecord()
     {
         return $this->record;
@@ -246,32 +215,15 @@ class LinkField extends FormField
             ->addComponent(new GridFieldEditButton())
             ->addComponent(new GridFieldDeleteAction(false));
 
-        $dataColumns = $config->getComponentByType(GridFieldDataColumns::class);
-        
-        $dataColumns->setDisplayFields([
-            'Layout' => _t(__CLASS__ . '.LINK', 'Link')
-        ]);
-
-        // Use a callback to render HTML
-        $dataColumns->setFieldCasting([
-            'Layout' => 'HTMLFragment' // SS6-friendly way to cast HTML
-        ]);
-
-        $dataColumns->setFieldFormatting([
-            'Layout' => function($value, $item) {
-                return $item->forTemplate(); // or $item->getLayout() depending on your code
-            }
-        ]);
-
-        $fieldData = null;
-        if ($this->parent instanceof DataObject) {
-            $fieldData = $this->parent->{$this->name}();
-        }
+        $config->getComponentByType(GridFieldDataColumns::class)
+            ->setDisplayFields([
+                'Layout' => _t(__CLASS__ . '.LINK', 'Link')
+            ]);
 
         $field = GridField::create(
             $this->name,
             $this->title,
-            $fieldData,
+            $this->parent->{$this->name}(),
             $config
         )->setForm($this->Form);
 
