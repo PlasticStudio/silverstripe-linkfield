@@ -161,20 +161,32 @@ class LinkField extends FormField
     {
         $parent = $this->parent;
 
-        if (!$parent || !$parent->exists()) {
+        if (!$parent) {
             return false;
         }
 
-        switch ($parent->getRelationType($this->name)) {
-            case 'has_one':
-                return 'one';
-            case 'has_many':
-            case 'many_many':
-            case 'belongs_many_many':
-                return 'many';
-            default:
-                return false; // fallback for unknown relations
+        $type = $parent->getRelationType($this->name);
+
+        if ($type === 'has_one') {
+            return 'one';
         }
+
+        if (in_array($type, ['has_many', 'many_many', 'belongs_many_many'])) {
+            return 'many';
+        }
+
+        // Fallback ONLY if schema is temporarily unavailable
+        if ($parent->hasMethod($this->name)) {
+            $relation = $parent->{$this->name}();
+
+            if ($relation instanceof DataObject) {
+                return 'one';
+            }
+
+            return 'many';
+        }
+
+        return false;
     }
 
     public function getRecord()
@@ -218,6 +230,11 @@ class LinkField extends FormField
         $config->getComponentByType(GridFieldDataColumns::class)
             ->setDisplayFields([
                 'Layout' => _t(__CLASS__ . '.LINK', 'Link')
+            ])
+            ->setFieldFormatting([
+                'Layout' => function ($value, $item) {
+                    return $item->Layout; 
+                }
             ]);
 
         $field = GridField::create(
