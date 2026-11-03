@@ -171,6 +171,14 @@ class LinkField extends FormField
             return 'one';
         }
 
+        // Many-many LinkFields require a saved parent record to initialise the relationship GridField
+        if (
+            in_array($type, ['many_many', 'belongs_many_many'], true)
+            && !$parent->isInDB()
+        ) {
+            return false;
+        }
+
         if (in_array($type, ['has_many', 'many_many', 'belongs_many_many'])) {
             return 'many';
         }
