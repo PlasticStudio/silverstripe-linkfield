@@ -98,7 +98,9 @@ class LinkField extends FormField
         Requirements::css('gorriecoe/silverstripe-linkfield: client/dist/linkfield.css');
         $field = null;
         $parent = $this->parent;
-        switch ($this->isOneOrMany()) {
+        $relationshipType = $parent->isInDB() ? $this->isOneOrMany() : null;
+
+        switch ($relationshipType) {
             case 'one':
                 $relationship = $parent->{$this->name}();
                 $field = CompositeField::create(
